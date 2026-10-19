@@ -6,24 +6,24 @@
  * @author The dark net programmers
  */
 
-#ifndef AGENT_H
-#define AGENT_H
+#ifndef AGENT_H_
+#define AGENT_H_
 
 #include "game.h"
 
 /**
  * @brief Function pointer type for initializing an agent.
  *
- * @return A pointer to the agent's state, which will be passed to the get_next_move function. The agent can return nullptr if it doesn't need to maintain any state.
+ * @return A pointer to the agent's state, which will be passed to the unload and get_next_move functions. The agent can return nullptr if it doesn't need to maintain any state.
  */
 typedef void *(*LoadCallback)();
 
 /**
  * @brief Function pointer type for unloading an agent. This function will be called by the game engine when the agent is no longer needed, and can be used to free any resources allocated by the agent.
  *
- * @param state A pointer to the agent's state that was returned by the init function. The agent can use this pointer to free any resources allocated for its state.
+ * @param state A pointer to the agent's state that was returned by the load function. The agent can use this pointer to free any resources allocated for its state.
  */
-typedef void (*UnloadCallback)(void *userdata);
+typedef void (*UnloadCallback)(void *state);
 
 /**
  * @brief Function pointer type for checking if a stop has been requested by the game engine.
@@ -35,13 +35,13 @@ typedef bool (*StopRequestedCallback)();
 /**
  * @brief Function pointer type for getting the next move from an agent.
  *
- * @param userdata A pointer to user data that can be passed to the agent.
+ * @param state A pointer to the agent's state that was returned by the load function.
  * @param game The current game state.
- * @param stopRequested A function pointer that the agent should call periodically to check if a stop has been requested by the game engine. If this function returns true, the agent should stop its computation and return immediately the best move found so far.
+ * @param stop_requested A function pointer that the agent should call periodically to check if a stop has been requested by the game engine. If this function returns true, the agent should stop its computation and return immediately the best move found so far.
  *
  * @return The position of the next move that the agent wants to play. If the agent has no valid moves, it should return an invalid position (e.g., {-1, -1}).
  */
-typedef GamePosition (*GetNextMoveCallback)(void *userdata, Game &game, StopRequestedCallback stopRequested);
+typedef GamePosition (*GetNextMoveCallback)(void *state, const Game &game, StopRequestedCallback stop_requested);
 
 /**
  * @brief A struct to describe an agent, containing its name and the function pointers for loading, unloading, and getting the next move.
@@ -67,7 +67,7 @@ struct AgentInstance
 };
 
 /**
- * @brief A struct to hold an instance of each agent type.
+ * @brief Loads an agent instance, calling the agent's load function and storing the returned state.
  *
  * @param instance A reference to the agent instance to be loaded.
  * @param descriptor A reference to the agent descriptor to be loaded.
@@ -81,4 +81,4 @@ void LoadAgentInstance(AgentInstance &instance, AgentDescriptor &descriptor);
  */
 void UnloadAgentInstance(AgentInstance &instance);
 
-#endif // AGENT_H
+#endif // AGENT_H_

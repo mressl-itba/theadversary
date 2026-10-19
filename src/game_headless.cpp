@@ -16,7 +16,7 @@
 /**
  * @brief Prints the current board of the game to the console.
  */
-void PrintBoard(Game &game)
+void PrintBoard(const Game &game)
 {
     for (int32_t y = 0; y < BOARD_SIZE; y++)
     {
@@ -56,10 +56,10 @@ int main(int argc, char *argv[])
     InitializeGame(game);
 
     // Load the agents
-    AgentInstance agentInstances[2];
+    AgentInstance agent_instances[2];
 
-    LoadAgentInstance(agentInstances[0], starter_agent);
-    LoadAgentInstance(agentInstances[1], greedy_agent);
+    LoadAgentInstance(agent_instances[0], starter_agent);
+    LoadAgentInstance(agent_instances[1], greedy_agent);
 
     // Main game loop
     bool game_over = false;
@@ -67,19 +67,19 @@ int main(int argc, char *argv[])
     {
         std::cout << ".";
 
-        GamePhase phase = GetGamePhase(game);
+        GameStatus status = GetGameStatus(game);
         GamePosition next_move;
 
-        switch (phase)
+        switch (status)
         {
         case GAME_BLACK_PLAYS:
-            next_move = agentInstances[0].descriptor->get_next_move(agentInstances[0].state, game, StopRequested);
+            next_move = agent_instances[0].descriptor->get_next_move(agent_instances[0].state, game, StopRequested);
             PlayMove(game, next_move);
 
             break;
 
         case GAME_WHITE_PLAYS:
-            next_move = agentInstances[1].descriptor->get_next_move(agentInstances[1].state, game, StopRequested);
+            next_move = agent_instances[1].descriptor->get_next_move(agent_instances[1].state, game, StopRequested);
             PlayMove(game, next_move);
 
             break;
@@ -111,8 +111,8 @@ int main(int argc, char *argv[])
 
     PrintBoard(game);
 
-    UnloadAgentInstance(agentInstances[0]);
-    UnloadAgentInstance(agentInstances[1]);
+    UnloadAgentInstance(agent_instances[0]);
+    UnloadAgentInstance(agent_instances[1]);
 
     return GetGameScore(game, SQUARE_BLACK);
 }

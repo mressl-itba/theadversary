@@ -67,7 +67,7 @@ Implementa **Minimax con poda Alpha-Beta**:
 - Usa **iterative deepening** para aprovechar el tiempo disponible.
 - Control de interrupción:
 
-  - Tu algoritmo debe llamar periódicamente a la función `StopRequested`.
+  - Tu algoritmo debe llamar periódicamente a `stop_requested`, la función que recibe tu agente.
   - Si devuelve `true`, debes **interrumpir inmediatamente** la búsqueda y devolver la mejor jugada encontrada hasta el momento.
 
 ### 3. Función de evaluación heurística (la clave)

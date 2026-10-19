@@ -25,9 +25,9 @@ enum GameSquare
 };
 
 /**
- * @brief Represents the phase of the game.
+ * @brief Represents the status of the game: whose turn it is, or how the game ended.
  */
-enum GamePhase
+enum GameStatus
 {
     GAME_BLACK_PLAYS = 0,
     GAME_WHITE_PLAYS = 1,
@@ -57,7 +57,7 @@ struct Game
 {
     GameSquare board[BOARD_SIZE][BOARD_SIZE];
 
-    GamePhase phase;
+    GameStatus status;
 };
 
 /**
@@ -68,23 +68,41 @@ struct Game
 void InitializeGame(Game &game);
 
 /**
- * @brief Gets the current phase of the game.
+ * @brief Gets the current status of the game.
  *
  * @param game The current game state.
  *
- * @return The current phase of the game.
+ * @return The current status of the game: whose turn it is, or how the game ended.
  */
-GamePhase GetGamePhase(const Game &game);
+GameStatus GetGameStatus(const Game &game);
+
+/**
+ * @brief Checks if the game is over.
+ *
+ * @param game The current game state.
+ *
+ * @return true if neither player can move (GAME_BLACK_WINS, GAME_WHITE_WINS or GAME_DRAW), false otherwise.
+ */
+bool IsGameOver(const Game &game);
+
+/**
+ * @brief Gets the player whose turn it is.
+ *
+ * @param game The current game state.
+ *
+ * @return The square representing the current player (SQUARE_BLACK or SQUARE_WHITE), or SQUARE_EMPTY if the game is over.
+ */
+GameSquare GetCurrentPlayer(const Game &game);
 
 /**
  * @brief Gets the score of a player in the current game state.
  *
  * @param game The current game state.
- * @param square The square representing the player to get the score for (SQUARE_BLACK or SQUARE_WHITE).
+ * @param player The square representing the player to get the score for (SQUARE_BLACK or SQUARE_WHITE).
  *
  * @return The score of the player in the current game state.
  */
-uint32_t GetGameScore(const Game &game, GameSquare square);
+uint32_t GetGameScore(const Game &game, GameSquare player);
 
 /**
  * @brief Gets the square at a given position on the board.

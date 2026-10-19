@@ -57,7 +57,7 @@
 
 #define STRING_APP "The Adversary"
 
-#define STRING_PLAY_GAME "Start game"
+#define STRING_START_GAME "Start game"
 
 #define STRING_BLACK "Black"
 #define STRING_WHITE "White"
@@ -89,12 +89,12 @@ static const Color BOARD_CELL_COLOR = {22, 92, 62, 255};
 static const Color BOARD_LINE_COLOR = {12, 34, 26, 255};
 static const Color LAST_MOVE_COLOR = {255, 204, 92, 255};
 
-static const Color BLACK_SQUARE_COLOR = {22, 24, 28, 255};
-static const Color BLACK_SQUARE_OUTLINE_COLOR = {8, 10, 14, 255};
-static const Color WHITE_SQUARE_COLOR = {236, 239, 246, 255};
-static const Color WHITE_SQUARE_OUTLINE_COLOR = {168, 176, 194, 255};
+static const Color BLACK_DISK_COLOR = {22, 24, 28, 255};
+static const Color BLACK_DISK_OUTLINE_COLOR = {8, 10, 14, 255};
+static const Color WHITE_DISK_COLOR = {236, 239, 246, 255};
+static const Color WHITE_DISK_OUTLINE_COLOR = {168, 176, 194, 255};
 
-static const char *PHASE_LABELS[] = {
+static const char *STATUS_LABELS[] = {
     STRING_BLACK_TO_MOVE,
     STRING_WHITE_TO_MOVE,
     STRING_BLACK_WINS,
@@ -257,7 +257,7 @@ static void UpdateStartMenuUI()
     y += 3 * BUTTON_HEIGHT + 2 * BUTTON_GAP;
     Vector2 start_button_position = {WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2,
                                      y + (WINDOW_HEIGHT - y) / 2 - BUTTON_HEIGHT / 2};
-    if (UpdateButton(STRING_PLAY_GAME, start_button_position, TEXT_SIZE, false))
+    if (UpdateButton(STRING_START_GAME, start_button_position, TEXT_SIZE, false))
     {
         in_game = true;
         has_last_move = false;
@@ -278,10 +278,10 @@ static void UpdateTurnTimer()
     const double elapsed = now - last_timer_update_time;
     last_timer_update_time = now;
 
-    GamePhase phase = GetGamePhase(game);
-    if (phase == GAME_BLACK_PLAYS)
+    GameStatus status = GetGameStatus(game);
+    if (status == GAME_BLACK_PLAYS)
         black_elapsed_seconds += elapsed;
-    else if (phase == GAME_WHITE_PLAYS)
+    else if (status == GAME_WHITE_PLAYS)
         white_elapsed_seconds += elapsed;
 }
 
@@ -297,13 +297,13 @@ static void DrawDisk(GameSquare square, Vector2 center, float radius)
 {
     if (square == SQUARE_BLACK)
     {
-        DrawCircleV(center, radius, BLACK_SQUARE_COLOR);
-        DrawCircleLinesV(center, radius, BLACK_SQUARE_OUTLINE_COLOR);
+        DrawCircleV(center, radius, BLACK_DISK_COLOR);
+        DrawCircleLinesV(center, radius, BLACK_DISK_OUTLINE_COLOR);
     }
     else if (square == SQUARE_WHITE)
     {
-        DrawCircleV(center, radius, WHITE_SQUARE_COLOR);
-        DrawCircleLinesV(center, radius, WHITE_SQUARE_OUTLINE_COLOR);
+        DrawCircleV(center, radius, WHITE_DISK_COLOR);
+        DrawCircleLinesV(center, radius, WHITE_DISK_OUTLINE_COLOR);
     }
 }
 
@@ -340,11 +340,11 @@ static void DrawScoreRow(float y,
  */
 static void UpdateGameUI()
 {
-    // Get current game phase and flags
-    GamePhase phase = GetGamePhase(game);
+    // Get current game status and flags
+    GameStatus status = GetGameStatus(game);
 
-    bool black_turn = phase == GAME_BLACK_PLAYS;
-    bool white_turn = phase == GAME_WHITE_PLAYS;
+    bool black_turn = status == GAME_BLACK_PLAYS;
+    bool white_turn = status == GAME_WHITE_PLAYS;
     bool game_over = !black_turn && !white_turn;
 
     bool human_turn = ((black_turn && black_player_type == PLAYER_HUMAN) ||
@@ -421,7 +421,7 @@ static void UpdateGameUI()
     DrawRectangleRounded(status_card_bounds, 0.16f, 8, BUTTON_COLOR);
     DrawRectangleRoundedLinesEx(status_card_bounds, 0.16f, 8, 2.0f, BUTTON_BORDER_COLOR);
 
-    const char *status_text = PHASE_LABELS[phase];
+    const char *status_text = STATUS_LABELS[status];
     DrawCenteredText(status_text, status_card_bounds, TEXT_SIZE, ACTIVE_TEXT_COLOR);
 
     // Score card
@@ -537,14 +537,14 @@ static bool PlayAIMove()
 {
     double start_time = GetTime();
 
-    GamePhase phase = GetGamePhase(game);
+    GameStatus status = GetGameStatus(game);
     GamePosition move = {-1, -1};
-    if (phase == GAME_BLACK_PLAYS)
+    if (status == GAME_BLACK_PLAYS)
         move = agent_instances[0].descriptor->get_next_move(agent_instances[0].state, game, StopRequested);
-    else if (phase == GAME_WHITE_PLAYS)
+    else if (status == GAME_WHITE_PLAYS)
         move = agent_instances[1].descriptor->get_next_move(agent_instances[1].state, game, StopRequested);
 
-    // Ensure AI move is played for at least 1.5 seconds to give the user time to see the AI's move
+    // Ensure AI move is played for at least 1.25 seconds to give the user time to see the AI's move
     while (!stop_requested && (GetTime() - start_time) < 1.25)
         UpdateUIFrame();
 
@@ -556,7 +556,7 @@ static bool PlayAIMove()
         return true;
     }
 
-    const char *side = (GetGamePhase(game) == GAME_BLACK_PLAYS) ? STRING_BLACK : STRING_WHITE;
+    const char *side = (GetGameStatus(game) == GAME_BLACK_PLAYS) ? STRING_BLACK : STRING_WHITE;
     std::cerr << "error: " << side << " AI failed to play a valid move!" << std::endl;
 
     return false;
@@ -568,10 +568,10 @@ bool UpdateUI()
 
     if (in_game)
     {
-        GamePhase phase = GetGamePhase(game);
+        GameStatus status = GetGameStatus(game);
 
-        bool ai_turn = (phase == GAME_BLACK_PLAYS && black_player_type == PLAYER_AI) ||
-                       (phase == GAME_WHITE_PLAYS && white_player_type == PLAYER_AI);
+        bool ai_turn = (status == GAME_BLACK_PLAYS && black_player_type == PLAYER_AI) ||
+                       (status == GAME_WHITE_PLAYS && white_player_type == PLAYER_AI);
 
         if (ai_turn)
         {

@@ -22,7 +22,7 @@ struct StarterAgentState
 /**
  * @brief Initializes the agent's state. This function will be called by the game engine when the agent is loaded, and can be used to set up any necessary data structures or variables for the agent.
  *
- * @return A pointer to the agent's state, which will be passed to the get_next_move function. The agent can return nullptr if it doesn't need to maintain any state.
+ * @return A pointer to the agent's state, which will be passed to the unload and get_next_move functions. The agent can return nullptr if it doesn't need to maintain any state.
  */
 void *LoadStarterAgent()
 {
@@ -34,28 +34,28 @@ void *LoadStarterAgent()
 /**
  * @brief Unloads the agent's state. This function will be called by the game engine when the agent is no longer needed, and can be used to free any resources allocated by the agent.
  *
- * @param state A pointer to the agent's state that was returned by the init function. The agent can use this pointer to free any resources allocated for its state.
+ * @param state A pointer to the agent's state that was returned by the load function. The agent can use this pointer to free any resources allocated for its state.
  */
-void UnloadStarterAgent(void *userdata)
+void UnloadStarterAgent(void *state)
 {
-    StarterAgentState *agentState = (StarterAgentState *)userdata;
+    StarterAgentState *agent_state = (StarterAgentState *)state;
 
     // Clean up any resources allocated for your agent's state here.
-    delete agentState;
+    delete agent_state;
 }
 
 /**
  * @brief Gets the next move from the agent. This function will be called by the game engine when it is the agent's turn to play, and should return the position of the next move that the agent wants to play.
  *
- * @param userdata A pointer to the agent's state that was returned by the init function. The agent can use this pointer to access any state variables it has maintained.
+ * @param state A pointer to the agent's state that was returned by the load function. The agent can use this pointer to access any state variables it has maintained.
  * @param game The current game state. The agent can use this information to analyze the board and decide on its next move.
- * @param stopRequested A function pointer that the agent should call periodically during its computation to check if a stop has been requested by the game engine. If this function returns true, the agent should stop its computation and return immediately the best move found so far.
+ * @param stop_requested A function pointer that the agent should call periodically during its computation to check if a stop has been requested by the game engine. If this function returns true, the agent should stop its computation and return immediately the best move found so far.
  *
  * @return The position of the next move that the agent wants to play. If the agent has no valid moves, it should return an invalid position (e.g., {-1, -1}).
  */
-GamePosition GetStarterAgentNextMove(void *userdata, Game &game, StopRequestedCallback stopRequested)
+GamePosition GetStarterAgentNextMove(void *state, const Game &game, StopRequestedCallback stop_requested)
 {
-    StarterAgentState *agentState = (StarterAgentState *)userdata;
+    StarterAgentState *agent_state = (StarterAgentState *)state;
 
     // Get all valid moves for the current player
     GameMoves moves;

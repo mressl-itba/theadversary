@@ -17,13 +17,13 @@
 int main(int argc, char *argv[])
 {
     // Load the agents
-    AgentInstance agentInstances[2];
+    AgentInstance agent_instances[2];
 
-    LoadAgentInstance(agentInstances[0], starter_agent);
-    LoadAgentInstance(agentInstances[1], greedy_agent);
+    LoadAgentInstance(agent_instances[0], starter_agent);
+    LoadAgentInstance(agent_instances[1], greedy_agent);
 
     // Initialize the UI
-    LoadUI(agentInstances);
+    LoadUI(agent_instances);
 
     while(true)
     {
@@ -35,6 +35,6 @@ int main(int argc, char *argv[])
     UnloadUI();
 
     // Unload the agents
-    UnloadAgentInstance(agentInstances[0]);
-    UnloadAgentInstance(agentInstances[1]);
+    UnloadAgentInstance(agent_instances[0]);
+    UnloadAgentInstance(agent_instances[1]);
 }

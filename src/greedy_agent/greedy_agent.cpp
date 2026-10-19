@@ -24,7 +24,7 @@ struct GreedyAgentState
 /**
  * @brief Initializes the agent's state. This function will be called by the game engine when the agent is loaded, and can be used to set up any necessary data structures or variables for the agent.
  *
- * @return A pointer to the agent's state, which will be passed to the get_next_move function. The agent can return nullptr if it doesn't need to maintain any state.
+ * @return A pointer to the agent's state, which will be passed to the unload and get_next_move functions. The agent can return nullptr if it doesn't need to maintain any state.
  */
 void *LoadGreedyAgent()
 {
@@ -36,29 +36,29 @@ void *LoadGreedyAgent()
 /**
  * @brief Unloads the agent's state. This function will be called by the game engine when the agent is no longer needed, and can be used to free any resources allocated by the agent.
  *
- * @param state A pointer to the agent's state that was returned by the init function. The agent can use this pointer to free any resources allocated for its state.
+ * @param state A pointer to the agent's state that was returned by the load function. The agent can use this pointer to free any resources allocated for its state.
  */
-void UnloadGreedyAgent(void *userdata)
+void UnloadGreedyAgent(void *state)
 {
-    GreedyAgentState *agentState = (GreedyAgentState *)userdata;
+    GreedyAgentState *agent_state = (GreedyAgentState *)state;
 
     // Clean up any resources allocated for your agent's state here.
-    delete agentState;
+    delete agent_state;
 }
 
 /**
  * @brief Gets the next move from the agent. This function will be called by the game engine when it is the agent's turn to play, and should return the position of the next move that the agent wants to play.
  *
- * @param userdata A pointer to the agent's state that was returned by the init function. The agent can use this pointer to access any state variables it has maintained.
+ * @param state A pointer to the agent's state that was returned by the load function. The agent can use this pointer to access any state variables it has maintained.
  * @param game The current game state. The agent can use this information to analyze the board and decide on its next move.
- * @param stopRequested A function pointer that the agent should call periodically during its computation to check if a stop has been requested by the game engine. If this function returns true, the agent should stop its computation and return immediately the best move found so far.
+ * @param stop_requested A function pointer that the agent should call periodically during its computation to check if a stop has been requested by the game engine. If this function returns true, the agent should stop its computation and return immediately the best move found so far.
  *
  * @return The position of the next move that the agent wants to play. If the agent has no valid moves, it should return an invalid position (e.g., {-1, -1}).
  */
-GamePosition GetGreedyAgentNextMove(void *userdata, Game &game, StopRequestedCallback stopRequested)
+GamePosition GetGreedyAgentNextMove(void *state, const Game &game, StopRequestedCallback stop_requested)
 {
-    // Cast the userdata pointer to your agent's state structure so you can access any state variables you have maintained.
-    GreedyAgentState *agentState = (GreedyAgentState *)userdata;
+    // Cast the state pointer to your agent's state structure so you can access any state variables you have maintained.
+    GreedyAgentState *agent_state = (GreedyAgentState *)state;
 
     // Get all valid moves for the current player
     GameMoves moves;
@@ -67,28 +67,29 @@ GamePosition GetGreedyAgentNextMove(void *userdata, Game &game, StopRequestedCal
     if (moves.empty())
         return {-1, -1}; // No valid moves, return an invalid position
 
+    // Get the player whose turn it is
+    GameSquare player = GetCurrentPlayer(game);
+
     // Pick the move that captures the most opponent pieces
     GamePosition best_move = moves[0];
     int max_captured = -1;
     for (const GamePosition &move : moves)
     {
         // Check if a stop has been requested before simulating the move
-        if (stopRequested())
+        if (stop_requested())
             break;
 
         // Simulate the move on a temporary game state
         Game temp_game = game;
-        GamePhase phase = GetGamePhase(temp_game);
-        GameSquare square = (phase == GAME_BLACK_PLAYS) ? SQUARE_BLACK : SQUARE_WHITE;
 
         // Get the score before simulating
-        uint32_t score_before = GetGameScore(temp_game, square);
+        uint32_t score_before = GetGameScore(temp_game, player);
 
         // Simulate the move
         PlayMove(temp_game, move);
 
         // Get the score after simulating
-        uint32_t score_after = GetGameScore(temp_game, square);
+        uint32_t score_after = GetGameScore(temp_game, player);
 
         // Calculate how many pieces would be captured by this move
         int captured = score_after - score_before;
@@ -104,7 +105,7 @@ GamePosition GetGreedyAgentNextMove(void *userdata, Game &game, StopRequestedCal
     const auto wait_until = std::chrono::steady_clock::now() + wait_duration;
     while (std::chrono::steady_clock::now() < wait_until)
     {
-        if (stopRequested())
+        if (stop_requested())
             break;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));

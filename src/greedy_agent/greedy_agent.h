@@ -8,11 +8,11 @@
 
  // IMPORTANT: RENAME THIS FOLDER, FILES AND STRUCTURE TO SUIT YOUR PROJECT
 
-#ifndef GREEDY_H_
-#define GREEDY_H_
+#ifndef GREEDY_AGENT_H_
+#define GREEDY_AGENT_H_
 
 #include "../game/agent.h"
 
 extern AgentDescriptor greedy_agent;
 
-#endif // GREEDY_H_
+#endif // GREEDY_AGENT_H_

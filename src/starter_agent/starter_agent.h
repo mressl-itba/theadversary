@@ -1,18 +1,18 @@
 /**
  * The Adversary
- * AI agent: The Nexus
+ * Simple starter AI agent
  *
- * @details This module implements the The Nexus AI agent for Reversi.
+ * @details This module implements a starter AI agent for Reversi.
  * @author The dark net programmers
  */
 
  // IMPORTANT: RENAME THIS FOLDER, FILES AND STRUCTURE TO SUIT YOUR PROJECT
 
-#ifndef STARTER_H_
-#define STARTER_H_
+#ifndef STARTER_AGENT_H_
+#define STARTER_AGENT_H_
 
 #include "../game/agent.h"
 
 extern AgentDescriptor starter_agent;
 
-#endif // STARTER_H_
+#endif // STARTER_AGENT_H_

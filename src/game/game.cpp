@@ -46,7 +46,7 @@ void InitializeGame(Game &game)
     SetSquare(game, {BOARD_SIZE / 2, BOARD_SIZE / 2 - 1}, SQUARE_BLACK);
     SetSquare(game, {BOARD_SIZE / 2, BOARD_SIZE / 2}, SQUARE_WHITE);
 
-    game.phase = GAME_BLACK_PLAYS;
+    game.status = GAME_BLACK_PLAYS;
 }
 
 /**
@@ -56,27 +56,22 @@ void InitializeGame(Game &game)
  *
  * @return The square representing the opponent player (SQUARE_BLACK or SQUARE_WHITE).
  */
-static GameSquare GetOpponentSquare(const Game &game)
+static GameSquare GetOpponent(const Game &game)
 {
-    if (game.phase == GAME_BLACK_PLAYS)
+    if (game.status == GAME_BLACK_PLAYS)
         return SQUARE_WHITE;
 
     return SQUARE_BLACK;
 }
 
-/**
- * @brief Gets the square representing the current player in the given game state.
- *
- * @param game The current game state.
- *
- * @return The square representing the current player (SQUARE_BLACK or SQUARE_WHITE).
- */
-static GameSquare GetPlayerSquare(const Game &game)
+GameSquare GetCurrentPlayer(const Game &game)
 {
-    if (game.phase == GAME_BLACK_PLAYS)
+    if (game.status == GAME_BLACK_PLAYS)
         return SQUARE_BLACK;
+    else if (game.status == GAME_WHITE_PLAYS)
+        return SQUARE_WHITE;
 
-    return SQUARE_WHITE;
+    return SQUARE_EMPTY;
 }
 
 /**
@@ -94,7 +89,7 @@ static bool CanCaptureInDirection(const Game &game, GamePosition start, GamePosi
         return false;
 
     GamePosition position = {start.x + direction.x, start.y + direction.y};
-    GameSquare opponent_square = GetOpponentSquare(game);
+    GameSquare opponent_square = GetOpponent(game);
     bool found_opponent = false;
 
     while (GetGameSquare(game, position) == opponent_square)
@@ -105,7 +100,7 @@ static bool CanCaptureInDirection(const Game &game, GamePosition start, GamePosi
         position.y += direction.y;
     }
 
-    return found_opponent && GetGameSquare(game, position) == GetPlayerSquare(game);
+    return found_opponent && GetGameSquare(game, position) == GetCurrentPlayer(game);
 }
 
 /**
@@ -121,11 +116,11 @@ static void FlipInDirection(Game &game, GamePosition start, GamePosition directi
         return;
 
     GamePosition position = {start.x + direction.x, start.y + direction.y};
-    const GameSquare opponent_square = GetOpponentSquare(game);
+    const GameSquare opponent_square = GetOpponent(game);
 
     while (GetGameSquare(game, position) == opponent_square)
     {
-        SetSquare(game, position, GetPlayerSquare(game));
+        SetSquare(game, position, GetCurrentPlayer(game));
 
         position.x += direction.x;
         position.y += direction.y;
@@ -134,6 +129,9 @@ static void FlipInDirection(Game &game, GamePosition start, GamePosition directi
 
 bool IsValidMove(const Game &game, GamePosition position)
 {
+    if (IsGameOver(game))
+        return false;
+
     if (GetGameSquare(game, position) != SQUARE_EMPTY)
         return false;
 
@@ -189,11 +187,11 @@ bool PlayMove(Game &game, GamePosition position)
         }
     }
 
-    SetSquare(game, position, GetPlayerSquare(game));
-    game.phase = (game.phase == GAME_BLACK_PLAYS) ? GAME_WHITE_PLAYS : GAME_BLACK_PLAYS;
+    SetSquare(game, position, GetCurrentPlayer(game));
+    game.status = (game.status == GAME_BLACK_PLAYS) ? GAME_WHITE_PLAYS : GAME_BLACK_PLAYS;
 
     if (!HasAnyValidMove(game))
-        game.phase = (game.phase == GAME_BLACK_PLAYS) ? GAME_WHITE_PLAYS : GAME_BLACK_PLAYS;
+        game.status = (game.status == GAME_BLACK_PLAYS) ? GAME_WHITE_PLAYS : GAME_BLACK_PLAYS;
 
     if (!HasAnyValidMove(game))
     {
@@ -201,11 +199,11 @@ bool PlayMove(Game &game, GamePosition position)
         uint32_t white_count = GetGameScore(game, SQUARE_WHITE);
 
         if (black_count > white_count)
-            game.phase = GAME_BLACK_WINS;
+            game.status = GAME_BLACK_WINS;
         else if (black_count < white_count)
-            game.phase = GAME_WHITE_WINS;
+            game.status = GAME_WHITE_WINS;
         else
-            game.phase = GAME_DRAW;
+            game.status = GAME_DRAW;
     }
 
     return true;
@@ -225,7 +223,7 @@ void GetValidMoves(const Game &game, GameMoves &moves)
     }
 }
 
-uint32_t GetGameScore(const Game &game, GameSquare square)
+uint32_t GetGameScore(const Game &game, GameSquare player)
 {
     uint32_t score = 0;
 
@@ -233,7 +231,7 @@ uint32_t GetGameScore(const Game &game, GameSquare square)
     {
         for (int32_t y = 0; y < BOARD_SIZE; y++)
         {
-            if (GetGameSquare(game, {x, y}) == square)
+            if (GetGameSquare(game, {x, y}) == player)
                 score++;
         }
     }
@@ -241,7 +239,12 @@ uint32_t GetGameScore(const Game &game, GameSquare square)
     return score;
 }
 
-GamePhase GetGamePhase(const Game &game)
+GameStatus GetGameStatus(const Game &game)
 {
-    return game.phase;
+    return game.status;
+}
+
+bool IsGameOver(const Game &game)
+{
+    return game.status != GAME_BLACK_PLAYS && game.status != GAME_WHITE_PLAYS;
 }
